@@ -355,7 +355,7 @@
         style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
         <div>
           <div style="font-size:18px;font-weight:bold;color:#1a237e;display:flex;align-items:center;gap:6px">
-            <i class="bi bi-speedometer2"></i> Dashboard Admin SMAP
+            Dashboard Admin SMAP
           </div>
           <div style="font-size:12px;color:#888;margin-top:2px">PT IDSurvey (Persero)</div>
         </div>
@@ -504,10 +504,7 @@
           pdf.setTextColor(0, 0, 0); pdf.text('IDSurvey', W - margin - 18, y + 7);
         }
 
-        y += logoH + 3;
-        pdf.setDrawColor(0); pdf.setLineWidth(0.5);
-        pdf.line(margin, y, W - margin, y);
-        y += 5;
+        y += logoH + 8;
         return y;
       }
 
@@ -602,7 +599,7 @@
         document.getElementById('tbl').style.display = 'table';
         if (error) {
           document.getElementById('tbody').innerHTML =
-            '<tr><td colspan="9" style="color:red;text-align:center;padding:20px">Gagal memuat: ' + error.message + '</td></tr>';
+            '<td><td colspan="9" style="color:red;text-align:center;padding:20px">Gagal memuat: ' + error.message + '</td></tr>';
           return;
         }
         allData = data || [];
@@ -701,35 +698,34 @@
 
         const W = 210, pageH = 297;
         const marginX = 15, marginBottom = 14;
-        const COLS = 4;           
-        const colW = (W - marginX * 2) / COLS;  
-        const ttdH = 18;         
-        const cellH = ttdH + 16;  
+        const COLS = 4;
+        const colW = (W - marginX * 2) / COLS;
+        const ttdH = 18;
+        const cellH = ttdH + 16;
 
         let y = await gambarHeaderPDF(pdf, imgD, imgI);
 
         pdf.setTextColor(0, 0, 0);
         pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11);
-        pdf.text('REKAP TANDA TANGAN', W / 2, y, { align: 'center' }); y += 5.5;
-        pdf.text('SURAT PERNYATAAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 4;
+        pdf.text('REKAP TANDA TANGAN', W / 2, y, { align: 'center' }); y += 6;
+        pdf.text('SURAT PERNYATAAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 5;
         pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5);
         pdf.text(
           'PT IDSurvey (Persero)  \u2014  Total: ' + allData.length + ' orang  \u2014  Dicetak: ' +
           new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           W / 2, y, { align: 'center' }
         );
-        y += 4;
+        y += 5;
         pdf.setLineWidth(0.4); pdf.setDrawColor(0);
-        pdf.line(marginX, y, W - marginX, y); y += 5;
+        pdf.line(marginX, y, W - marginX, y); y += 6;
 
-        const startY = y; 
+        const startY = y;
         for (let i = 0; i < allData.length; i++) {
           const d = allData[i];
           const col = i % COLS;
-          const row = Math.floor(i / COLS);
 
           const itemsPerPage1 = Math.floor((pageH - startY - marginBottom) / cellH) * COLS;
-          const itemsPerPageN = Math.floor((pageH - 38 - marginBottom) / cellH) * COLS; 
+          const itemsPerPageN = Math.floor((pageH - 38 - marginBottom) / cellH) * COLS;
 
           let localIdx, pageNum, localRow, localStartY;
           if (i < itemsPerPage1) {
@@ -742,17 +738,15 @@
             pageNum = 2 + Math.floor(rem / itemsPerPageN);
             localIdx = rem % itemsPerPageN;
             localRow = Math.floor(localIdx / COLS);
-            localStartY = 38; 
+            localStartY = 38;
           }
 
           const curPage = pdf.internal.getNumberOfPages();
           while (curPage < pageNum) { pdf.addPage(); }
-          if (curPage > pageNum) {
-          }
 
           if (pageNum > 1 && localIdx === 0 && col === 0) {
             pdf.setPage(pageNum);
-            const hY = await gambarHeaderPDF(pdf, imgD, imgI);
+            await gambarHeaderPDF(pdf, imgD, imgI);
           }
 
           pdf.setPage(pageNum);
