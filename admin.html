@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <script src="config.js"></script>
   <style>
     * {
@@ -184,7 +185,6 @@
       min-width: 180px;
     }
 
-    /* BUTTONS */
     .btn {
       padding: 8px 16px;
       border-radius: 6px;
@@ -228,7 +228,6 @@
       border-color: #c8e6c9;
     }
 
-    /* TABLE */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -270,7 +269,6 @@
       color: #999;
     }
 
-    /* MODAL HAPUS */
     #modal-hapus {
       display: none;
       position: fixed;
@@ -329,15 +327,13 @@
 <body>
   <div class="wrap">
 
-    <!-- LOGIN -->
     <div id="login-box">
-      <h2>🔐 Login Admin SMAP</h2>
+    <h2><i class="bi bi-shield-lock"></i> Login Admin SMAP</h2>
       <input type="password" id="pass" placeholder="Password admin" onkeydown="if(event.key==='Enter')login()">
       <button class="btn btn-primary" id="btnLogin" onclick="login()" style="width:100%">Masuk</button>
       <div id="err"></div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" style="display:none">
 
       <div
@@ -346,10 +342,11 @@
           <div style="font-size:18px;font-weight:bold;color:#1a237e">Dashboard Admin SMAP</div>
           <div style="font-size:12px;color:#888;margin-top:2px">PT IDSurvey (Persero)</div>
         </div>
-        <button class="btn btn-primary" onclick="muat()">🔄 Refresh Data</button>
-      </div>
+      <button class="btn btn-primary" onclick="muat()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh Data
+      </button>      
+    </div>
 
-      <!-- STAT -->
       <div class="stat-row">
         <div class="stat">
           <div class="n" id="s-total">0</div>
@@ -372,11 +369,12 @@
       <!-- GRAFIK -->
       <div class="grafik-wrap">
         <div class="grafik-card">
-          <h3>📊 Rekap per Unit Kerja</h3>
+          <h3><i class="bi bi-graph-up"></i> Rekap per Unit Kerja</h3>
           <div class="chart-container"><canvas id="chartUnit"></canvas></div>
         </div>
+        
         <div class="grafik-card">
-          <h3>📅 Tren Pengisian (7 Hari Terakhir)</h3>
+          <h3><i class="bi bi-calendar-check"></i> Tren Pengisian (7 Hari Terakhir)</h3>
           <div class="chart-container"><canvas id="chartTren"></canvas></div>
         </div>
       </div>
@@ -384,7 +382,8 @@
       <!-- TABEL -->
       <div class="card">
         <div class="toolbar">
-          <input id="cari" placeholder="🔍 Cari nama..." oninput="renderTable()">
+          <i class="bi bi-search"></i>
+          <input id="cari" placeholder="Cari nama..." oninput="renderTable()">
           <select id="filter-unit" onchange="renderTable()">
             <option value="">Semua Unit Kerja</option>
             <option>Deputi Direktur Strategi dan Transformasi Korporat</option>
@@ -408,7 +407,9 @@
           <button class="btn btn-csv" onclick="downloadCSV()">⬇ CSV</button>
         </div>
 
-        <div id="loading">⏳ Memuat data...</div>
+        <div id="loading">
+          <i class="bi bi-hourglass-split"></i> Memuat data...
+        </div>
         <table id="tbl" style="display:none">
           <thead>
             <tr>
@@ -428,10 +429,8 @@
       </div>
     </div>
 
-    <!-- MODAL HAPUS -->
     <div id="modal-hapus">
       <div class="modal-box">
-        <div class="icon">🗑️</div>
         <h3>Hapus Data?</h3>
         <p id="modal-pesan"></p>
         <div class="modal-btn-row">
@@ -447,7 +446,6 @@
       let chartUnit = null;
       let chartTren = null;
 
-      // Helper: load image as base64 untuk jsPDF
       function loadImgBase64(url) {
         return new Promise((resolve) => {
           const img = new Image();
@@ -463,7 +461,6 @@
         });
       }
 
-      // ─── LOGIN ───────────────────────────────────────
       function login() {
         const p = document.getElementById('pass').value;
         if (!p) { document.getElementById('err').innerText = 'Masukkan password.'; return; }
@@ -475,7 +472,6 @@
         muat();
       }
 
-      // ─── MUAT DATA ────────────────────────────────────
       async function muat() {
         document.getElementById('loading').style.display = 'block';
         document.getElementById('tbl').style.display = 'none';
@@ -500,7 +496,6 @@
         renderTable();
       }
 
-      // ─── STATISTIK ────────────────────────────────────
       function hitungStat() {
         const now = new Date();
         const todayStr = now.toLocaleDateString('id-ID');
@@ -522,7 +517,6 @@
         document.getElementById('s-minggu').innerText = mingguIni;
       }
 
-      // ─── GRAFIK ───────────────────────────────────────
       function renderGrafik() {
         const unitCount = {};
         allData.forEach(d => {
@@ -573,7 +567,6 @@
         });
       }
 
-      // ─── TABEL ───────────────────────────────────────
       function renderTable() {
         const q = document.getElementById('cari').value.toLowerCase();
         const fu = document.getElementById('filter-unit').value;
@@ -606,7 +599,6 @@
         document.getElementById('tbody').innerHTML = html;
       }
 
-      // ─── PDF CETAK ───────────────────────────────────
       async function cetakPDF(id) {
         const d = allData.find(x => x.id == id);
         if (!d) { alert('Data tidak ditemukan.'); return; }
@@ -619,15 +611,13 @@
         const contentW = W - margin * 2;
         let y = 15;
 
-        // ── LOAD LOGO ──
         const [imgDanantara, imgIDSurvey] = await Promise.all([
           loadImgBase64('images/danantara.png'),
           loadImgBase64('images/idsurvey.png')
         ]);
 
-        // ── HEADER: logo kiri (Danantara) & kanan (IDSurvey) ──
-        const logoH = 14; // tinggi logo area mm
-        const logoW = 45; // lebar logo mm
+        const logoH = 14; 
+        const logoW = 45; 
 
         if (imgDanantara) {
           pdf.addImage(imgDanantara, 'PNG', margin, y, logoW, logoH, undefined, 'FAST');
@@ -645,31 +635,27 @@
 
         y += logoH + 4;
 
-        // Garis bawah header
         pdf.setDrawColor(0);
         pdf.setLineWidth(0.5);
         pdf.line(margin, y, W - margin, y);
         y += 7;
 
-        // ── JUDUL ──
         pdf.setTextColor(0, 0, 0);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(12);
         pdf.text('SURAT PERNYATAAN', W / 2, y, { align: 'center' });
         y += 6;
         pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' });
-        y += 4;
+        y += 2; 
         pdf.setLineWidth(0.5);
         pdf.line(margin, y, W - margin, y);
-        y += 8;
+        y += 8; 
 
-        // ── PEMBUKA ──
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(11);
         pdf.text('Saya yang bertanda tangan di bawah ini:', margin, y);
         y += 7;
 
-        // ── IDENTITAS ──
         const colLabel = margin;
         const colSep = margin + 28;
         const colVal = colSep + 5;
@@ -684,14 +670,12 @@
           pdf.text(label, colLabel, y);
           pdf.setFont('helvetica', 'normal');
           pdf.text(':', colSep, y);
-          // wrap unit kerja yang panjang
           const valLines = pdf.splitTextToSize(val || '-', contentW - (colVal - margin));
           pdf.text(valLines, colVal, y);
           y += valLines.length > 1 ? valLines.length * 5.5 : 6;
         });
         y += 4;
 
-        // ── PERNYATAAN ──
         pdf.setFont('helvetica', 'normal');
         pdf.text('Dengan ini menyatakan bahwa:', margin, y);
         y += 7;
@@ -716,7 +700,6 @@
         });
         y += 4;
 
-        // ── PENUTUP ──
         const penutup = pdf.splitTextToSize(
           'Demikian surat pernyataan ini saya buat dengan sebenar-benarnya dan tanpa paksaan dari pihak manapun.',
           contentW
@@ -724,7 +707,6 @@
         pdf.text(penutup, margin, y);
         y += penutup.length * 5.5 + 8;
 
-        // ── TANDA TANGAN (pojok kanan) ──
         let tglFormatted = d.tanggal || '';
         try {
           if (d.tanggal) {
@@ -733,7 +715,7 @@
           }
         } catch (e) { }
 
-        const ttdCenterX = W - margin - 35; // center kolom TTD
+        const ttdCenterX = W - margin - 35; 
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(11);
         pdf.text((d.tempat || 'Jakarta') + ', ' + tglFormatted, ttdCenterX, y, { align: 'center' });
@@ -741,7 +723,6 @@
         pdf.text('Yang menyatakan,', ttdCenterX, y, { align: 'center' });
         y += 4;
 
-        // Gambar TTD
         if (d.ttd && d.ttd.startsWith('data:image')) {
           try {
             const imgW = 50; const imgH = 22;
@@ -752,22 +733,17 @@
           y += 24;
         }
 
-        // Garis nama
         pdf.setDrawColor(0);
         pdf.setLineWidth(0.3);
         pdf.line(ttdCenterX - 28, y, ttdCenterX + 28, y);
         y += 5;
 
-        // Nama
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(11);
         pdf.text(d.nama || '', ttdCenterX, y, { align: 'center' });
-
-        // ── SIMPAN ──
         pdf.save('Surat_SMAP_' + (d.nama || 'unknown').replace(/\s+/g, '_') + '.pdf');
       }
 
-      // ─── HAPUS ────────────────────────────────────────
       function konfirmasiHapus(id, nama) {
         document.getElementById('modal-pesan').innerText =
           'Data milik "' + nama + '" akan dihapus permanen.\nOrang tersebut dapat mengisi kembali setelah dihapus.';
@@ -785,13 +761,11 @@
 
       async function eksekusiHapus(id) {
         tutupModal();
-        // Cari nama orang yang dihapus (untuk memberi tahu jika diperlukan)
         const { error } = await sb.from('smap_data').delete().eq('id', id);
         if (error) { alert('Gagal hapus: ' + error.message); return; }
-        muat(); // refresh data
+        muat(); 
       }
 
-      // ─── CSV ─────────────────────────────────────────
       function downloadCSV() {
         if (allData.length === 0) { alert('Belum ada data.'); return; }
         const baris = [['No', 'Waktu Submit', 'Nama', 'Jabatan', 'Unit Kerja', 'Tempat', 'Tanggal TTD']];
