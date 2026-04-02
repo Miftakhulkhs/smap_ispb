@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script src="config.js"></script>
   <style>
     * {
@@ -185,8 +185,12 @@
       min-width: 180px;
     }
 
+    /* BUTTONS */
     .btn {
-      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
       border-radius: 6px;
       border: 1.5px solid #ddd;
       cursor: pointer;
@@ -194,10 +198,11 @@
       font-family: Arial, sans-serif;
       transition: all 0.15s;
       background: white;
+      white-space: nowrap;
     }
 
     .btn:hover {
-      opacity: 0.85;
+      opacity: 0.82;
     }
 
     .btn-primary {
@@ -211,7 +216,7 @@
       color: #1a73e8;
       border-color: #c5d8fb;
       padding: 4px 10px;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .btn-hapus {
@@ -219,7 +224,7 @@
       color: #c5221f;
       border-color: #f5c6c6;
       padding: 4px 10px;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .btn-csv {
@@ -228,6 +233,22 @@
       border-color: #c8e6c9;
     }
 
+    .btn-rekap {
+      background: #fff3e0;
+      color: #e65100;
+      border-color: #ffcc80;
+    }
+
+    .btn i {
+      font-size: 14px;
+    }
+
+    .btn-pdf i,
+    .btn-hapus i {
+      font-size: 13px;
+    }
+
+    /* TABLE */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -263,12 +284,7 @@
       color: #1a73e8;
     }
 
-    #loading {
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    }
-
+    /* MODAL HAPUS */
     #modal-hapus {
       display: none;
       position: fixed;
@@ -293,9 +309,10 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
 
-    .modal-box .icon {
-      font-size: 40px;
-      margin-bottom: 12px;
+    .modal-box .micon {
+      font-size: 36px;
+      color: #c5221f;
+      margin-bottom: 10px;
     }
 
     .modal-box h3 {
@@ -320,6 +337,7 @@
 
     .modal-btn-row .btn {
       min-width: 110px;
+      justify-content: center;
     }
   </style>
 </head>
@@ -327,54 +345,68 @@
 <body>
   <div class="wrap">
 
+    <!-- LOGIN -->
     <div id="login-box">
-    <h2><i class="bi bi-shield-lock"></i> Login Admin SMAP</h2>
+      <h2 style="display:flex;align-items:center;gap:8px">
+        <i class="bi bi-shield-lock" style="color:#1a237e;font-size:20px"></i>
+        Login Admin SMAP
+      </h2>
       <input type="password" id="pass" placeholder="Password admin" onkeydown="if(event.key==='Enter')login()">
-      <button class="btn btn-primary" id="btnLogin" onclick="login()" style="width:100%">Masuk</button>
+      <button class="btn btn-primary" onclick="login()" style="width:100%;justify-content:center;padding:10px">
+        <i class="bi bi-box-arrow-in-right"></i> Masuk
+      </button>
       <div id="err"></div>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="dashboard" style="display:none">
 
       <div
         style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
         <div>
-          <div style="font-size:18px;font-weight:bold;color:#1a237e">Dashboard Admin SMAP</div>
+          <div style="font-size:18px;font-weight:bold;color:#1a237e;display:flex;align-items:center;gap:6px">
+            <i class="bi bi-speedometer2"></i> Dashboard Admin SMAP
+          </div>
           <div style="font-size:12px;color:#888;margin-top:2px">PT IDSurvey (Persero)</div>
         </div>
-      <button class="btn btn-primary" onclick="muat()">
-        <i class="bi bi-arrow-clockwise"></i> Refresh Data
-      </button>      
-    </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-rekap" onclick="cetakRekapSemua()">
+            <i class="bi bi-file-earmark-pdf"></i> Rekap Semua TTD
+          </button>
+          <button class="btn btn-primary" onclick="muat()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+      </div>
 
+      <!-- STAT -->
       <div class="stat-row">
         <div class="stat">
           <div class="n" id="s-total">0</div>
-          <div class="l">Total Pengisian</div>
+          <div class="l"><i class="bi bi-people-fill"></i> Total Pengisian</div>
         </div>
         <div class="stat hijau">
           <div class="n" id="s-hari">0</div>
-          <div class="l">Hari Ini</div>
+          <div class="l"><i class="bi bi-calendar-check-fill"></i> Hari Ini</div>
         </div>
         <div class="stat oren">
           <div class="n" id="s-unit">0</div>
-          <div class="l">Unit Kerja Aktif</div>
+          <div class="l"><i class="bi bi-building-fill"></i> Unit Kerja Aktif</div>
         </div>
         <div class="stat">
           <div class="n" id="s-minggu">0</div>
-          <div class="l">Minggu Ini</div>
+          <div class="l"><i class="bi bi-calendar-week-fill"></i> Minggu Ini</div>
         </div>
       </div>
 
       <!-- GRAFIK -->
       <div class="grafik-wrap">
         <div class="grafik-card">
-          <h3><i class="bi bi-graph-up"></i> Rekap per Unit Kerja</h3>
+          <h3><i class="bi bi-bar-chart-horizontal-fill"></i> Rekap per Unit Kerja</h3>
           <div class="chart-container"><canvas id="chartUnit"></canvas></div>
         </div>
-        
         <div class="grafik-card">
-          <h3><i class="bi bi-calendar-check"></i> Tren Pengisian (7 Hari Terakhir)</h3>
+          <h3><i class="bi bi-graph-up-arrow"></i> Tren Pengisian (7 Hari Terakhir)</h3>
           <div class="chart-container"><canvas id="chartTren"></canvas></div>
         </div>
       </div>
@@ -382,7 +414,6 @@
       <!-- TABEL -->
       <div class="card">
         <div class="toolbar">
-          <i class="bi bi-search"></i>
           <input id="cari" placeholder="Cari nama..." oninput="renderTable()">
           <select id="filter-unit" onchange="renderTable()">
             <option value="">Semua Unit Kerja</option>
@@ -404,10 +435,12 @@
             <option>Divisi Pengadaan, Umum dan Manajemen Aset</option>
             <option>Unit TJSL</option>
           </select>
-          <button class="btn btn-csv" onclick="downloadCSV()">⬇ CSV</button>
+          <button class="btn btn-csv" onclick="downloadCSV()">
+            <i class="bi bi-download"></i> CSV
+          </button>
         </div>
 
-        <div id="loading">
+        <div id="loading" style="text-align:center;padding:40px;color:#999">
           <i class="bi bi-hourglass-split"></i> Memuat data...
         </div>
         <table id="tbl" style="display:none">
@@ -419,7 +452,7 @@
               <th>Jabatan</th>
               <th>Unit Kerja</th>
               <th>Tempat</th>
-              <th>Tanggal TTD</th>
+              <th>Tgl TTD</th>
               <th>PDF</th>
               <th>Hapus</th>
             </tr>
@@ -429,13 +462,15 @@
       </div>
     </div>
 
+    <!-- MODAL HAPUS -->
     <div id="modal-hapus">
       <div class="modal-box">
+        <div class="micon"><i class="bi bi-trash3-fill"></i></div>
         <h3>Hapus Data?</h3>
         <p id="modal-pesan"></p>
         <div class="modal-btn-row">
-          <button class="btn" onclick="tutupModal()">Batal</button>
-          <button class="btn btn-hapus" id="modal-ok-btn">Ya, Hapus</button>
+          <button class="btn" onclick="tutupModal()"><i class="bi bi-x-lg"></i> Batal</button>
+          <button class="btn btn-hapus" id="modal-ok-btn"><i class="bi bi-trash3"></i> Ya, Hapus</button>
         </div>
       </div>
     </div>
@@ -443,9 +478,9 @@
     <script>
       const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       let allData = [];
-      let chartUnit = null;
-      let chartTren = null;
+      let chartUnit = null, chartTren = null;
 
+      // ── Load gambar lokal → base64 untuk jsPDF ──
       function loadImgBase64(url) {
         return new Promise((resolve) => {
           const img = new Image();
@@ -454,231 +489,77 @@
             const c = document.createElement('canvas');
             c.width = img.naturalWidth; c.height = img.naturalHeight;
             c.getContext('2d').drawImage(img, 0, 0);
-            resolve(c.toDataURL('image/png'));
+            resolve({ data: c.toDataURL('image/png'), w: img.naturalWidth, h: img.naturalHeight });
           };
           img.onerror = () => resolve(null);
           img.src = url;
         });
       }
 
-      function login() {
-        const p = document.getElementById('pass').value;
-        if (!p) { document.getElementById('err').innerText = 'Masukkan password.'; return; }
-        if (p !== ADMIN_PASSWORD) {
-          document.getElementById('err').innerText = 'Password salah.'; return;
-        }
-        document.getElementById('login-box').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        muat();
-      }
-
-      async function muat() {
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('tbl').style.display = 'none';
-
-        const { data, error } = await sb
-          .from('smap_data')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('tbl').style.display = 'table';
-
-        if (error) {
-          document.getElementById('tbody').innerHTML =
-            '<tr><td colspan="9" style="color:red;text-align:center;padding:20px">Gagal memuat: ' + error.message + '</td></tr>';
-          return;
-        }
-
-        allData = data || [];
-        hitungStat();
-        renderGrafik();
-        renderTable();
-      }
-
-      function hitungStat() {
-        const now = new Date();
-        const todayStr = now.toLocaleDateString('id-ID');
-        const startMinggu = new Date(now);
-        startMinggu.setDate(now.getDate() - 6);
-        startMinggu.setHours(0, 0, 0, 0);
-
-        const hariIni = allData.filter(d =>
-          d.created_at && new Date(d.created_at).toLocaleDateString('id-ID') === todayStr
-        ).length;
-        const mingguIni = allData.filter(d =>
-          d.created_at && new Date(d.created_at) >= startMinggu
-        ).length;
-        const units = new Set(allData.map(d => d.unit_kerja)).size;
-
-        document.getElementById('s-total').innerText = allData.length;
-        document.getElementById('s-hari').innerText = hariIni;
-        document.getElementById('s-unit').innerText = units;
-        document.getElementById('s-minggu').innerText = mingguIni;
-      }
-
-      function renderGrafik() {
-        const unitCount = {};
-        allData.forEach(d => {
-          const u = d.unit_kerja || 'Tidak diketahui';
-          unitCount[u] = (unitCount[u] || 0) + 1;
-        });
-        const sortedUnits = Object.entries(unitCount).sort((a, b) => b[1] - a[1]);
-        const labelUnit = sortedUnits.map(x => x[0].length > 28 ? x[0].substring(0, 26) + '…' : x[0]);
-        const dataUnit = sortedUnits.map(x => x[1]);
-        const colors = dataUnit.map((_, i) => `hsla(${220 + i * 8}, 70%, ${55 - i * 2}%, 0.85)`);
-
-        if (chartUnit) chartUnit.destroy();
-        chartUnit = new Chart(document.getElementById('chartUnit'), {
-          type: 'bar',
-          data: { labels: labelUnit, datasets: [{ label: 'Jumlah', data: dataUnit, backgroundColor: colors, borderRadius: 5 }] },
-          options: {
-            responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-            plugins: { legend: { display: false } },
-            scales: { x: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } }, y: { ticks: { font: { size: 10 } } } }
-          }
-        });
-
-        const hari7 = [], count7 = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(); d.setDate(d.getDate() - i);
-          hari7.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
-          const str = d.toLocaleDateString('id-ID');
-          count7.push(allData.filter(x => x.created_at && new Date(x.created_at).toLocaleDateString('id-ID') === str).length);
-        }
-
-        if (chartTren) chartTren.destroy();
-        chartTren = new Chart(document.getElementById('chartTren'), {
-          type: 'line',
-          data: {
-            labels: hari7,
-            datasets: [{
-              label: 'Pengisian', data: count7,
-              borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)',
-              borderWidth: 2.5, fill: true, tension: 0.35,
-              pointBackgroundColor: '#1a73e8', pointRadius: 4
-            }]
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' }, min: 0 }, x: { grid: { display: false } } }
-          }
-        });
-      }
-
-      function renderTable() {
-        const q = document.getElementById('cari').value.toLowerCase();
-        const fu = document.getElementById('filter-unit').value;
-        const filtered = allData.filter(d =>
-          (!q || (d.nama && d.nama.toLowerCase().includes(q))) &&
-          (!fu || d.unit_kerja === fu)
-        );
-
-        if (filtered.length === 0) {
-          document.getElementById('tbody').innerHTML =
-            '<tr><td colspan="9" style="text-align:center;color:#999;padding:30px">Tidak ada data</td></tr>';
-          return;
-        }
-
-        let html = '';
-        filtered.forEach((d, i) => {
-          const ts = d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '-';
-          html += `<tr>
-      <td>${i + 1}</td>
-      <td style="white-space:nowrap">${ts}</td>
-      <td><strong>${d.nama || '-'}</strong></td>
-      <td>${d.jabatan || '-'}</td>
-      <td><span class="badge">${d.unit_kerja || '-'}</span></td>
-      <td>${d.tempat || '-'}</td>
-      <td>${d.tanggal || '-'}</td>
-      <td><button class="btn btn-pdf" onclick="cetakPDF('${d.id}')">🖨 PDF</button></td>
-      <td><button class="btn btn-hapus" onclick="konfirmasiHapus('${d.id}','${(d.nama || '').replace(/'/g, "\\'")}')">Hapus</button></td>
-    </tr>`;
-        });
-        document.getElementById('tbody').innerHTML = html;
-      }
-
-      async function cetakPDF(id) {
-        const d = allData.find(x => x.id == id);
-        if (!d) { alert('Data tidak ditemukan.'); return; }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-
-        const W = 210;
-        const margin = 25;
-        const contentW = W - margin * 2;
-        let y = 15;
-
-        const [imgDanantara, imgIDSurvey] = await Promise.all([
-          loadImgBase64('images/danantara.png'),
-          loadImgBase64('images/idsurvey.png')
-        ]);
-
-        const logoH = 14; 
-        const logoW = 45; 
+      // ── Gambar header PDF: logo kiri-kanan + garis BAWAH saja ──
+      async function gambarHeaderPDF(pdf, imgDanantara, imgIDSurvey) {
+        const W = 210, margin = 20;
+        let y = 12;
+        const logoH = 13, logoMaxW = 44;
 
         if (imgDanantara) {
-          pdf.addImage(imgDanantara, 'PNG', margin, y, logoW, logoH, undefined, 'FAST');
+          const ratio = imgDanantara.w / imgDanantara.h;
+          const lw = Math.min(logoMaxW, logoH * ratio);
+          pdf.addImage(imgDanantara.data, 'PNG', margin, y, lw, logoH, undefined, 'FAST');
         } else {
-          pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
-          pdf.text('Danantara Indonesia', margin, y + 8);
+          pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9);
+          pdf.setTextColor(0, 0, 0); pdf.text('Danantara Indonesia', margin, y + 7);
         }
 
         if (imgIDSurvey) {
-          pdf.addImage(imgIDSurvey, 'PNG', W - margin - logoW, y, logoW, logoH, undefined, 'FAST');
+          const ratio = imgIDSurvey.w / imgIDSurvey.h;
+          const lw = Math.min(logoMaxW, logoH * ratio);
+          pdf.addImage(imgIDSurvey.data, 'PNG', W - margin - lw, y, lw, logoH, undefined, 'FAST');
         } else {
-          pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
-          pdf.text('IDSurvey', W - margin - 20, y + 8);
+          pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9);
+          pdf.setTextColor(0, 0, 0); pdf.text('IDSurvey', W - margin - 18, y + 7);
         }
 
-        y += logoH + 4;
-
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.5);
+        y += logoH + 3;
+        // Hanya garis BAWAH header (garis atas dihilangkan)
+        pdf.setDrawColor(0); pdf.setLineWidth(0.5);
         pdf.line(margin, y, W - margin, y);
-        y += 7;
+        y += 5;
+        return y;
+      }
+
+      // ── Tulis isi surat 1 orang, return y akhir ──
+      function tulisIsiSurat(pdf, d, yStart) {
+        const W = 210, margin = 20, contentW = W - margin * 2;
+        let y = yStart;
 
         pdf.setTextColor(0, 0, 0);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(12);
-        pdf.text('SURAT PERNYATAAN', W / 2, y, { align: 'center' });
-        y += 6;
-        pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' });
-        y += 2; 
-        pdf.setLineWidth(0.5);
-        pdf.line(margin, y, W - margin, y);
-        y += 8; 
 
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
-        pdf.text('Saya yang bertanda tangan di bawah ini:', margin, y);
-        y += 7;
+        // Judul
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10.5);
+        pdf.text('SURAT PERNYATAAN', W / 2, y, { align: 'center' }); y += 5;
+        pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 3;
+        pdf.setLineWidth(0.35); pdf.setDrawColor(0);
+        pdf.line(margin, y, W - margin, y); y += 5.5;
 
-        const colLabel = margin;
-        const colSep = margin + 28;
-        const colVal = colSep + 5;
+        // Pembuka
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9.5);
+        pdf.text('Saya yang bertanda tangan di bawah ini:', margin, y); y += 5.5;
 
-        const fields = [
-          ['Nama', d.nama],
-          ['Jabatan', d.jabatan],
-          ['Unit Kerja', d.unit_kerja],
-        ];
-        fields.forEach(([label, val]) => {
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(label, colLabel, y);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(':', colSep, y);
-          const valLines = pdf.splitTextToSize(val || '-', contentW - (colVal - margin));
-          pdf.text(valLines, colVal, y);
-          y += valLines.length > 1 ? valLines.length * 5.5 : 6;
+        // Identitas
+        const colSep = margin + 26, colVal = colSep + 4;
+        [['Nama', d.nama], ['Jabatan', d.jabatan], ['Unit Kerja', d.unit_kerja]].forEach(([lbl, val]) => {
+          pdf.setFont('helvetica', 'bold'); pdf.text(lbl, margin, y);
+          pdf.setFont('helvetica', 'normal'); pdf.text(':', colSep, y);
+          const lines = pdf.splitTextToSize(val || '-', contentW - (colVal - margin));
+          pdf.text(lines, colVal, y);
+          y += lines.length > 1 ? lines.length * 4.8 : 5;
         });
-        y += 4;
+        y += 2.5;
 
+        // Pernyataan
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Dengan ini menyatakan bahwa:', margin, y);
-        y += 7;
+        pdf.text('Dengan ini menyatakan bahwa:', margin, y); y += 5;
 
         const poin = [
           'Saya telah menerima, membaca, dan memahami kebijakan Sistem Manajemen Anti Penyuapan (SMAP) yang ditandatangani oleh jajaran Komisaris dan Direksi PT IDSurvey (Persero).',
@@ -687,102 +568,248 @@
           'Saya bersedia melaporkan setiap indikasi pelanggaran SMAP sesuai dengan mekanisme yang telah ditetapkan.',
           'Saya memahami bahwa pelanggaran terhadap kebijakan SMAP akan dikenakan sanksi sesuai dengan ketentuan yang berlaku di perusahaan.',
         ];
-
         poin.forEach((p, idx) => {
-          const numStr = (idx + 1) + '.';
-          const indent = margin + 7;
-          const wrapW = contentW - 7;
-          const lines = pdf.splitTextToSize(p, wrapW);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(numStr, margin, y);
-          pdf.text(lines, indent, y);
-          y += lines.length * 5.5 + 1.5;
+          const lines = pdf.splitTextToSize(p, contentW - 6);
+          pdf.text((idx + 1) + '.', margin, y);
+          pdf.text(lines, margin + 6, y);
+          y += lines.length * 4.8 + 0.8;
         });
-        y += 4;
+        y += 2.5;
 
+        // Penutup
         const penutup = pdf.splitTextToSize(
           'Demikian surat pernyataan ini saya buat dengan sebenar-benarnya dan tanpa paksaan dari pihak manapun.',
           contentW
         );
-        pdf.text(penutup, margin, y);
-        y += penutup.length * 5.5 + 8;
+        pdf.text(penutup, margin, y); y += penutup.length * 4.8 + 5;
 
-        let tglFormatted = d.tanggal || '';
+        // TTD — pojok kanan
+        let tglFmt = d.tanggal || '';
         try {
-          if (d.tanggal) {
-            tglFormatted = new Date(d.tanggal + 'T00:00:00')
-              .toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-          }
+          if (d.tanggal) tglFmt = new Date(d.tanggal + 'T00:00:00')
+            .toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         } catch (e) { }
 
-        const ttdCenterX = W - margin - 35; 
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
-        pdf.text((d.tempat || 'Jakarta') + ', ' + tglFormatted, ttdCenterX, y, { align: 'center' });
-        y += 5;
-        pdf.text('Yang menyatakan,', ttdCenterX, y, { align: 'center' });
-        y += 4;
+        const ttdCX = W - margin - 30;
+        pdf.setFontSize(9.5);
+        pdf.text((d.tempat || 'Jakarta') + ', ' + tglFmt, ttdCX, y, { align: 'center' }); y += 4;
+        pdf.text('Yang menyatakan,', ttdCX, y, { align: 'center' }); y += 2.5;
 
         if (d.ttd && d.ttd.startsWith('data:image')) {
-          try {
-            const imgW = 50; const imgH = 22;
-            pdf.addImage(d.ttd, 'PNG', ttdCenterX - imgW / 2, y, imgW, imgH);
-            y += imgH + 1;
-          } catch (e) { y += 24; }
-        } else {
-          y += 24;
+          try { pdf.addImage(d.ttd, 'PNG', ttdCX - 22, y, 44, 17); y += 18; }
+          catch (e) { y += 18; }
+        } else { y += 18; }
+
+        pdf.setLineWidth(0.25); pdf.setDrawColor(0);
+        pdf.line(ttdCX - 25, y, ttdCX + 25, y); y += 4;
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9.5);
+        pdf.text(d.nama || '', ttdCX, y, { align: 'center' });
+        y += 2;
+
+        return y;
+      }
+
+      // ─── LOGIN ───────────────────────────────────────
+      function login() {
+        const p = document.getElementById('pass').value;
+        if (!p) { document.getElementById('err').innerText = 'Masukkan password.'; return; }
+        if (p !== ADMIN_PASSWORD) { document.getElementById('err').innerText = 'Password salah.'; return; }
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        muat();
+      }
+
+      // ─── MUAT DATA ────────────────────────────────────
+      async function muat() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('tbl').style.display = 'none';
+        const { data, error } = await sb.from('smap_data').select('*').order('created_at', { ascending: false });
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('tbl').style.display = 'table';
+        if (error) {
+          document.getElementById('tbody').innerHTML =
+            '<tr><td colspan="9" style="color:red;text-align:center;padding:20px">Gagal memuat: ' + error.message + '</td></tr>';
+          return;
         }
+        allData = data || [];
+        hitungStat(); renderGrafik(); renderTable();
+      }
 
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.3);
-        pdf.line(ttdCenterX - 28, y, ttdCenterX + 28, y);
-        y += 5;
+      // ─── STATISTIK ────────────────────────────────────
+      function hitungStat() {
+        const now = new Date(), todayStr = now.toLocaleDateString('id-ID');
+        const startMinggu = new Date(now); startMinggu.setDate(now.getDate() - 6); startMinggu.setHours(0, 0, 0, 0);
+        document.getElementById('s-total').innerText = allData.length;
+        document.getElementById('s-hari').innerText = allData.filter(d => d.created_at && new Date(d.created_at).toLocaleDateString('id-ID') === todayStr).length;
+        document.getElementById('s-unit').innerText = new Set(allData.map(d => d.unit_kerja)).size;
+        document.getElementById('s-minggu').innerText = allData.filter(d => d.created_at && new Date(d.created_at) >= startMinggu).length;
+      }
 
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text(d.nama || '', ttdCenterX, y, { align: 'center' });
+      // ─── GRAFIK ───────────────────────────────────────
+      function renderGrafik() {
+        const uc = {};
+        allData.forEach(d => { const u = d.unit_kerja || 'Lainnya'; uc[u] = (uc[u] || 0) + 1; });
+        const su = Object.entries(uc).sort((a, b) => b[1] - a[1]);
+        const colors = su.map((_, i) => `hsla(${220 + i * 8},70%,${55 - i * 2}%,0.85)`);
+
+        if (chartUnit) chartUnit.destroy();
+        chartUnit = new Chart(document.getElementById('chartUnit'), {
+          type: 'bar',
+          data: { labels: su.map(x => x[0].length > 28 ? x[0].substring(0, 26) + '…' : x[0]), datasets: [{ label: 'Jumlah', data: su.map(x => x[1]), backgroundColor: colors, borderRadius: 5 }] },
+          options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } }, y: { ticks: { font: { size: 10 } } } } }
+        });
+
+        const h7 = [], c7 = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i);
+          h7.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+          const s = d.toLocaleDateString('id-ID');
+          c7.push(allData.filter(x => x.created_at && new Date(x.created_at).toLocaleDateString('id-ID') === s).length);
+        }
+        if (chartTren) chartTren.destroy();
+        chartTren = new Chart(document.getElementById('chartTren'), {
+          type: 'line',
+          data: { labels: h7, datasets: [{ label: 'Pengisian', data: c7, borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', borderWidth: 2.5, fill: true, tension: 0.35, pointBackgroundColor: '#1a73e8', pointRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' }, min: 0 }, x: { grid: { display: false } } } }
+        });
+      }
+
+      // ─── TABEL ───────────────────────────────────────
+      function renderTable() {
+        const q = document.getElementById('cari').value.toLowerCase();
+        const fu = document.getElementById('filter-unit').value;
+        const filtered = allData.filter(d =>
+          (!q || (d.nama && d.nama.toLowerCase().includes(q))) && (!fu || d.unit_kerja === fu)
+        );
+        if (!filtered.length) {
+          document.getElementById('tbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;padding:30px">Tidak ada data</td></tr>';
+          return;
+        }
+        document.getElementById('tbody').innerHTML = filtered.map((d, i) => {
+          const ts = d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '-';
+          return `<tr>
+      <td>${i + 1}</td>
+      <td style="white-space:nowrap">${ts}</td>
+      <td><strong>${d.nama || '-'}</strong></td>
+      <td>${d.jabatan || '-'}</td>
+      <td><span class="badge">${d.unit_kerja || '-'}</span></td>
+      <td>${d.tempat || '-'}</td>
+      <td>${d.tanggal || '-'}</td>
+      <td><button class="btn btn-pdf" onclick="cetakPDF('${d.id}')"><i class="bi bi-printer-fill"></i> PDF</button></td>
+      <td><button class="btn btn-hapus" onclick="konfirmasiHapus('${d.id}','${(d.nama || '').replace(/'/g, "\\'")}')"><i class="bi bi-trash3-fill"></i> Hapus</button></td>
+    </tr>`;
+        }).join('');
+      }
+
+      // ─── CETAK PDF 1 ORANG ───────────────────────────
+      async function cetakPDF(id) {
+        const d = allData.find(x => x.id == id);
+        if (!d) { alert('Data tidak ditemukan.'); return; }
+
+        const [imgD, imgI] = await Promise.all([
+          loadImgBase64('images/danantara.png'),
+          loadImgBase64('images/idsurvey.png')
+        ]);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+        const y = await gambarHeaderPDF(pdf, imgD, imgI);
+        tulisIsiSurat(pdf, d, y);
         pdf.save('Surat_SMAP_' + (d.nama || 'unknown').replace(/\s+/g, '_') + '.pdf');
       }
 
+      // ─── CETAK REKAP SEMUA TTD ───────────────────────
+      async function cetakRekapSemua() {
+        if (!allData.length) { alert('Belum ada data.'); return; }
+
+        const [imgD, imgI] = await Promise.all([
+          loadImgBase64('images/danantara.png'),
+          loadImgBase64('images/idsurvey.png')
+        ]);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+        const W = 210, pageH = 297, bottomMargin = 18;
+        const maxY = pageH - bottomMargin;
+
+        // Halaman pertama — header + judul rekap
+        let y = await gambarHeaderPDF(pdf, imgD, imgI);
+
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11);
+        pdf.text('REKAP SURAT PERNYATAAN', W / 2, y, { align: 'center' }); y += 5.5;
+        pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 4;
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+        pdf.text(
+          'PT IDSurvey (Persero)  \u2014  Total: ' + allData.length + ' orang  \u2014  Dicetak: ' +
+          new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          W / 2, y, { align: 'center' }
+        );
+        y += 3.5;
+        pdf.setLineWidth(0.5); pdf.setDrawColor(0);
+        pdf.line(20, y, W - 20, y); y += 7;
+
+        // Tulis tiap surat satu per satu dengan auto page break
+        for (let i = 0; i < allData.length; i++) {
+          const d = allData[i];
+
+          // Estimasi tinggi 1 blok (dikira-kira 90mm)
+          const estimasi = 92;
+          if (i > 0 && y + estimasi > maxY) {
+            pdf.addPage();
+            y = await gambarHeaderPDF(pdf, imgD, imgI);
+          }
+
+          // Garis pemisah tipis di atas tiap blok (kecuali pertama di halaman)
+          pdf.setDrawColor(200); pdf.setLineWidth(0.25);
+          pdf.line(20, y, W - 20, y); y += 4;
+          pdf.setDrawColor(0);
+
+          y = tulisIsiSurat(pdf, d, y);
+          y += 6; // jarak antar surat
+        }
+
+        // Nomor halaman di tiap halaman
+        const totalHal = pdf.internal.getNumberOfPages();
+        for (let p = 1; p <= totalHal; p++) {
+          pdf.setPage(p);
+          pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.setTextColor(150);
+          pdf.text('Halaman ' + p + ' dari ' + totalHal, W / 2, pageH - 7, { align: 'center' });
+        }
+
+        pdf.save('Rekap_TTD_SMAP_' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-') + '.pdf');
+      }
+
+      // ─── HAPUS ────────────────────────────────────────
       function konfirmasiHapus(id, nama) {
         document.getElementById('modal-pesan').innerText =
           'Data milik "' + nama + '" akan dihapus permanen.\nOrang tersebut dapat mengisi kembali setelah dihapus.';
         document.getElementById('modal-ok-btn').onclick = () => eksekusiHapus(id);
         document.getElementById('modal-hapus').classList.add('aktif');
       }
-
-      function tutupModal() {
-        document.getElementById('modal-hapus').classList.remove('aktif');
-      }
-
-      document.getElementById('modal-hapus').addEventListener('click', function (e) {
-        if (e.target === this) tutupModal();
-      });
+      function tutupModal() { document.getElementById('modal-hapus').classList.remove('aktif'); }
+      document.getElementById('modal-hapus').addEventListener('click', function (e) { if (e.target === this) tutupModal(); });
 
       async function eksekusiHapus(id) {
         tutupModal();
         const { error } = await sb.from('smap_data').delete().eq('id', id);
         if (error) { alert('Gagal hapus: ' + error.message); return; }
-        muat(); 
+        muat();
       }
 
+      // ─── CSV ─────────────────────────────────────────
       function downloadCSV() {
-        if (allData.length === 0) { alert('Belum ada data.'); return; }
+        if (!allData.length) { alert('Belum ada data.'); return; }
         const baris = [['No', 'Waktu Submit', 'Nama', 'Jabatan', 'Unit Kerja', 'Tempat', 'Tanggal TTD']];
         allData.forEach((d, i) => {
-          const ts = d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '';
-          baris.push([i + 1, ts, d.nama, d.jabatan, d.unit_kerja, d.tempat, d.tanggal]);
+          baris.push([i + 1, d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '', d.nama, d.jabatan, d.unit_kerja, d.tempat, d.tanggal]);
         });
-        const csv = baris.map(r =>
-          r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')
-        ).join('\n');
+        const csv = baris.map(r => r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')).join('\n');
         const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+        const a = document.createElement('a'); a.href = url;
         a.download = 'Data_SMAP_' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-') + '.csv';
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(url);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       }
     </script>
 </body>
