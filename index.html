@@ -302,8 +302,6 @@
       <p>Kamu sudah mengisi surat pernyataan SMAP.<br>Terima kasih atas partisipasinya.</p>
     </div>
 
-
-    <!-- Form -->
     <div id="form-wrap">
       <div class="surat">
         <h2>Surat Pernyataan<br>Pemahaman dan Penerapan Kebijakan SMAP</h2>
@@ -388,41 +386,32 @@
   </div>
 
   <script>
-    // Init Supabase
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Set tanggal hari ini
     document.getElementById('tanggal').valueAsDate = new Date();
 
-    // ── CEK SUDAH ISI: cek ke Supabase berdasarkan localStorage key ──
-    // localStorage hanya simpan nama yang sudah submit di browser ini.
-    // Tapi kita validasi ke Supabase — jika data sudah dihapus admin, izinkan isi ulang.
     async function cekSudahIsi() {
       const namaTersimpan = localStorage.getItem('smap_nama_submit');
-      if (!namaTersimpan) return; // belum pernah submit dari browser ini
+      if (!namaTersimpan) return; 
 
-      // Cek apakah data dengan nama ini masih ada di Supabase
       const { data, error } = await sb
         .from('smap_data')
         .select('id')
         .eq('nama', namaTersimpan)
         .limit(1);
 
-      if (error) return; // kalau error, biarkan isi (jangan blokir)
+      if (error) return; 
 
       if (data && data.length > 0) {
-        // Data masih ada di Supabase → tampilkan halaman sudah isi
         document.getElementById('form-wrap').style.display = 'none';
         document.getElementById('sudah-isi').style.display = 'block';
       } else {
-        // Data sudah dihapus admin → hapus localStorage, izinkan isi ulang
         localStorage.removeItem('smap_nama_submit');
       }
     }
 
     cekSudahIsi();
 
-    // ── CANVAS TTD ──
     const cv = document.getElementById('ttd');
     const ctx = cv.getContext('2d');
     let drawing = false;
@@ -496,7 +485,6 @@
         return;
       }
 
-      // Simpan nama (bukan flag 'ya') supaya bisa dicek ke Supabase nanti
       localStorage.setItem('smap_nama_submit', nama);
       document.getElementById('form-wrap').style.display = 'none';
       document.getElementById('sudah-isi').style.display = 'block';

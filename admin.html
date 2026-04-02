@@ -30,7 +30,6 @@
       margin: 0 auto;
     }
 
-    /* LOGIN */
     #login-box {
       max-width: 360px;
       margin: 80px auto;
@@ -68,7 +67,6 @@
       margin-top: 6px;
     }
 
-    /* CARD */
     .card {
       background: white;
       border-radius: 10px;
@@ -77,7 +75,6 @@
       margin-bottom: 20px;
     }
 
-    /* STAT */
     .stat-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -121,7 +118,6 @@
       color: #a06b00;
     }
 
-    /* GRAFIK */
     .grafik-wrap {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -153,7 +149,6 @@
       height: 240px;
     }
 
-    /* TOOLBAR */
     .toolbar {
       display: flex;
       gap: 8px;
@@ -185,7 +180,6 @@
       min-width: 180px;
     }
 
-    /* BUTTONS */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -248,7 +242,6 @@
       font-size: 13px;
     }
 
-    /* TABLE */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -284,7 +277,6 @@
       color: #1a73e8;
     }
 
-    /* MODAL HAPUS */
     #modal-hapus {
       display: none;
       position: fixed;
@@ -345,7 +337,6 @@
 <body>
   <div class="wrap">
 
-    <!-- LOGIN -->
     <div id="login-box">
       <h2 style="display:flex;align-items:center;gap:8px">
         <i class="bi bi-shield-lock" style="color:#1a237e;font-size:20px"></i>
@@ -358,7 +349,6 @@
       <div id="err"></div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" style="display:none">
 
       <div
@@ -379,7 +369,6 @@
         </div>
       </div>
 
-      <!-- STAT -->
       <div class="stat-row">
         <div class="stat">
           <div class="n" id="s-total">0</div>
@@ -399,7 +388,6 @@
         </div>
       </div>
 
-      <!-- GRAFIK -->
       <div class="grafik-wrap">
         <div class="grafik-card">
           <h3><i class="bi bi-bar-chart-horizontal-fill"></i> Rekap per Unit Kerja</h3>
@@ -411,7 +399,6 @@
         </div>
       </div>
 
-      <!-- TABEL -->
       <div class="card">
         <div class="toolbar">
           <input id="cari" placeholder="Cari nama..." oninput="renderTable()">
@@ -462,7 +449,6 @@
       </div>
     </div>
 
-    <!-- MODAL HAPUS -->
     <div id="modal-hapus">
       <div class="modal-box">
         <div class="micon"><i class="bi bi-trash3-fill"></i></div>
@@ -480,7 +466,6 @@
       let allData = [];
       let chartUnit = null, chartTren = null;
 
-      // ── Load gambar lokal → base64 untuk jsPDF ──
       function loadImgBase64(url) {
         return new Promise((resolve) => {
           const img = new Image();
@@ -496,7 +481,6 @@
         });
       }
 
-      // ── Gambar header PDF: logo kiri-kanan + garis BAWAH saja ──
       async function gambarHeaderPDF(pdf, imgDanantara, imgIDSurvey) {
         const W = 210, margin = 20;
         let y = 12;
@@ -521,32 +505,27 @@
         }
 
         y += logoH + 3;
-        // Hanya garis BAWAH header (garis atas dihilangkan)
         pdf.setDrawColor(0); pdf.setLineWidth(0.5);
         pdf.line(margin, y, W - margin, y);
         y += 5;
         return y;
       }
 
-      // ── Tulis isi surat 1 orang, return y akhir ──
       function tulisIsiSurat(pdf, d, yStart) {
         const W = 210, margin = 20, contentW = W - margin * 2;
         let y = yStart;
 
         pdf.setTextColor(0, 0, 0);
 
-        // Judul
         pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10.5);
         pdf.text('SURAT PERNYATAAN', W / 2, y, { align: 'center' }); y += 5;
         pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 3;
         pdf.setLineWidth(0.35); pdf.setDrawColor(0);
         pdf.line(margin, y, W - margin, y); y += 5.5;
 
-        // Pembuka
         pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9.5);
         pdf.text('Saya yang bertanda tangan di bawah ini:', margin, y); y += 5.5;
 
-        // Identitas
         const colSep = margin + 26, colVal = colSep + 4;
         [['Nama', d.nama], ['Jabatan', d.jabatan], ['Unit Kerja', d.unit_kerja]].forEach(([lbl, val]) => {
           pdf.setFont('helvetica', 'bold'); pdf.text(lbl, margin, y);
@@ -557,7 +536,6 @@
         });
         y += 2.5;
 
-        // Pernyataan
         pdf.setFont('helvetica', 'normal');
         pdf.text('Dengan ini menyatakan bahwa:', margin, y); y += 5;
 
@@ -576,14 +554,12 @@
         });
         y += 2.5;
 
-        // Penutup
         const penutup = pdf.splitTextToSize(
           'Demikian surat pernyataan ini saya buat dengan sebenar-benarnya dan tanpa paksaan dari pihak manapun.',
           contentW
         );
         pdf.text(penutup, margin, y); y += penutup.length * 4.8 + 5;
 
-        // TTD — pojok kanan
         let tglFmt = d.tanggal || '';
         try {
           if (d.tanggal) tglFmt = new Date(d.tanggal + 'T00:00:00')
@@ -609,7 +585,6 @@
         return y;
       }
 
-      // ─── LOGIN ───────────────────────────────────────
       function login() {
         const p = document.getElementById('pass').value;
         if (!p) { document.getElementById('err').innerText = 'Masukkan password.'; return; }
@@ -619,7 +594,6 @@
         muat();
       }
 
-      // ─── MUAT DATA ────────────────────────────────────
       async function muat() {
         document.getElementById('loading').style.display = 'block';
         document.getElementById('tbl').style.display = 'none';
@@ -635,7 +609,6 @@
         hitungStat(); renderGrafik(); renderTable();
       }
 
-      // ─── STATISTIK ────────────────────────────────────
       function hitungStat() {
         const now = new Date(), todayStr = now.toLocaleDateString('id-ID');
         const startMinggu = new Date(now); startMinggu.setDate(now.getDate() - 6); startMinggu.setHours(0, 0, 0, 0);
@@ -645,7 +618,6 @@
         document.getElementById('s-minggu').innerText = allData.filter(d => d.created_at && new Date(d.created_at) >= startMinggu).length;
       }
 
-      // ─── GRAFIK ───────────────────────────────────────
       function renderGrafik() {
         const uc = {};
         allData.forEach(d => { const u = d.unit_kerja || 'Lainnya'; uc[u] = (uc[u] || 0) + 1; });
@@ -674,7 +646,6 @@
         });
       }
 
-      // ─── TABEL ───────────────────────────────────────
       function renderTable() {
         const q = document.getElementById('cari').value.toLowerCase();
         const fu = document.getElementById('filter-unit').value;
@@ -701,7 +672,6 @@
         }).join('');
       }
 
-      // ─── CETAK PDF 1 ORANG ───────────────────────────
       async function cetakPDF(id) {
         const d = allData.find(x => x.id == id);
         if (!d) { alert('Data tidak ditemukan.'); return; }
@@ -718,7 +688,6 @@
         pdf.save('Surat_SMAP_' + (d.nama || 'unknown').replace(/\s+/g, '_') + '.pdf');
       }
 
-      // ─── CETAK REKAP SEMUA TTD ───────────────────────
       async function cetakRekapSemua() {
         if (!allData.length) { alert('Belum ada data.'); return; }
 
@@ -729,58 +698,107 @@
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-        const W = 210, pageH = 297, bottomMargin = 18;
-        const maxY = pageH - bottomMargin;
 
-        // Halaman pertama — header + judul rekap
+        const W = 210, pageH = 297;
+        const marginX = 15, marginBottom = 14;
+        const COLS = 4;           
+        const colW = (W - marginX * 2) / COLS;  
+        const ttdH = 18;         
+        const cellH = ttdH + 16;  
+
         let y = await gambarHeaderPDF(pdf, imgD, imgI);
 
         pdf.setTextColor(0, 0, 0);
         pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11);
-        pdf.text('REKAP SURAT PERNYATAAN', W / 2, y, { align: 'center' }); y += 5.5;
-        pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 4;
-        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+        pdf.text('REKAP TANDA TANGAN', W / 2, y, { align: 'center' }); y += 5.5;
+        pdf.text('SURAT PERNYATAAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' }); y += 4;
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5);
         pdf.text(
           'PT IDSurvey (Persero)  \u2014  Total: ' + allData.length + ' orang  \u2014  Dicetak: ' +
           new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           W / 2, y, { align: 'center' }
         );
-        y += 3.5;
-        pdf.setLineWidth(0.5); pdf.setDrawColor(0);
-        pdf.line(20, y, W - 20, y); y += 7;
+        y += 4;
+        pdf.setLineWidth(0.4); pdf.setDrawColor(0);
+        pdf.line(marginX, y, W - marginX, y); y += 5;
 
-        // Tulis tiap surat satu per satu dengan auto page break
+        const startY = y; 
         for (let i = 0; i < allData.length; i++) {
           const d = allData[i];
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
 
-          // Estimasi tinggi 1 blok (dikira-kira 90mm)
-          const estimasi = 92;
-          if (i > 0 && y + estimasi > maxY) {
-            pdf.addPage();
-            y = await gambarHeaderPDF(pdf, imgD, imgI);
+          const itemsPerPage1 = Math.floor((pageH - startY - marginBottom) / cellH) * COLS;
+          const itemsPerPageN = Math.floor((pageH - 38 - marginBottom) / cellH) * COLS; 
+
+          let localIdx, pageNum, localRow, localStartY;
+          if (i < itemsPerPage1) {
+            pageNum = 1;
+            localIdx = i;
+            localRow = Math.floor(localIdx / COLS);
+            localStartY = startY;
+          } else {
+            const rem = i - itemsPerPage1;
+            pageNum = 2 + Math.floor(rem / itemsPerPageN);
+            localIdx = rem % itemsPerPageN;
+            localRow = Math.floor(localIdx / COLS);
+            localStartY = 38; 
           }
 
-          // Garis pemisah tipis di atas tiap blok (kecuali pertama di halaman)
-          pdf.setDrawColor(200); pdf.setLineWidth(0.25);
-          pdf.line(20, y, W - 20, y); y += 4;
+          const curPage = pdf.internal.getNumberOfPages();
+          while (curPage < pageNum) { pdf.addPage(); }
+          if (curPage > pageNum) {
+          }
+
+          if (pageNum > 1 && localIdx === 0 && col === 0) {
+            pdf.setPage(pageNum);
+            const hY = await gambarHeaderPDF(pdf, imgD, imgI);
+          }
+
+          pdf.setPage(pageNum);
+
+          const cellX = marginX + col * colW;
+          const cellY = localStartY + localRow * cellH;
+
+          pdf.setDrawColor(210); pdf.setLineWidth(0.2);
+          pdf.rect(cellX, cellY, colW, cellH);
           pdf.setDrawColor(0);
 
-          y = tulisIsiSurat(pdf, d, y);
-          y += 6; // jarak antar surat
+          pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7); pdf.setTextColor(160);
+          pdf.text(String(i + 1), cellX + 1.5, cellY + 4);
+          pdf.setTextColor(0);
+
+          const ttdAreaY = cellY + 3;
+          if (d.ttd && d.ttd.startsWith('data:image')) {
+            try {
+              const ttdW = colW - 8;
+              const ttdX = cellX + 4;
+              pdf.addImage(d.ttd, 'PNG', ttdX, ttdAreaY, ttdW, ttdH - 2, undefined, 'FAST');
+            } catch (e) { }
+          }
+
+          const garisY = cellY + ttdH + 4;
+          pdf.setLineWidth(0.3); pdf.setDrawColor(0);
+          pdf.line(cellX + 3, garisY, cellX + colW - 3, garisY);
+
+          pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5); pdf.setTextColor(0);
+          const namaLines = pdf.splitTextToSize(d.nama || '-', colW - 4);
+          const namaShow = namaLines.slice(0, 2);
+          namaShow.forEach((line, li) => {
+            pdf.text(line, cellX + colW / 2, garisY + 3.5 + li * 4, { align: 'center' });
+          });
         }
 
-        // Nomor halaman di tiap halaman
         const totalHal = pdf.internal.getNumberOfPages();
         for (let p = 1; p <= totalHal; p++) {
           pdf.setPage(p);
-          pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.setTextColor(150);
-          pdf.text('Halaman ' + p + ' dari ' + totalHal, W / 2, pageH - 7, { align: 'center' });
+          pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7.5); pdf.setTextColor(150);
+          pdf.text('Halaman ' + p + ' dari ' + totalHal, W / 2, pageH - 6, { align: 'center' });
         }
 
         pdf.save('Rekap_TTD_SMAP_' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-') + '.pdf');
       }
 
-      // ─── HAPUS ────────────────────────────────────────
       function konfirmasiHapus(id, nama) {
         document.getElementById('modal-pesan').innerText =
           'Data milik "' + nama + '" akan dihapus permanen.\nOrang tersebut dapat mengisi kembali setelah dihapus.';
@@ -797,7 +815,6 @@
         muat();
       }
 
-      // ─── CSV ─────────────────────────────────────────
       function downloadCSV() {
         if (!allData.length) { alert('Belum ada data.'); return; }
         const baris = [['No', 'Waktu Submit', 'Nama', 'Jabatan', 'Unit Kerja', 'Tempat', 'Tanggal TTD']];
