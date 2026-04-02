@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Admin SMAP</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 24px 16px; font-size: 13px; min-height: 100vh; }
+
+.wrap { max-width: 1140px; margin: 0 auto; }
+
+/* LOGIN */
+#login-box {
+  max-width: 360px; margin: 80px auto; background: white;
+  padding: 36px; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+}
+#login-box h2 { font-size: 17px; margin-bottom: 20px; color: #1a237e; }
+#login-box input {
+  width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
+  border-radius: 6px; font-size: 13px; margin-bottom: 10px;
+  font-family: Arial, sans-serif; transition: border-color 0.2s;
+}
+#login-box input:focus { outline: none; border-color: #1a73e8; }
+#err { color: #c5221f; font-size: 12px; margin-top: 6px; }
+
+/* CARD */
+.card { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px; }
+
+/* STAT */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-left: 4px solid #1a73e8; }
+.stat .n { font-size: 32px; font-weight: bold; color: #1a237e; }
+.stat .l { font-size: 12px; color: #666; margin-top: 4px; }
+.stat.hijau { border-left-color: #34a853; }
+.stat.hijau .n { color: #137333; }
+.stat.oren { border-left-color: #fbbc04; }
+.stat.oren .n { color: #a06b00; }
+
+/* GRAFIK */
+.grafik-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+@media (max-width: 680px) { .grafik-wrap { grid-template-columns: 1fr; } }
+.grafik-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+.grafik-card h3 { font-size: 13px; color: #444; margin-bottom: 14px; }
+.chart-container { position: relative; height: 240px; }
+
+/* TOOLBAR */
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.toolbar input, .toolbar select {
+  padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px;
+  font-size: 13px; font-family: Arial, sans-serif;
+}
+.toolbar input:focus, .toolbar select:focus { outline: none; border-color: #1a73e8; }
+.toolbar input { width: 200px; }
+.toolbar select { min-width: 180px; }
+
+/* BUTTONS */
+.btn { padding: 8px 16px; border-radius: 6px; border: 1.5px solid #ddd; cursor: pointer; font-size: 13px; font-family: Arial, sans-serif; transition: all 0.15s; background: white; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: #1a73e8; color: white; border-color: #1a73e8; }
+.btn-pdf { background: #e8f0fe; color: #1a73e8; border-color: #c5d8fb; padding: 4px 10px; font-size: 11px; }
+.btn-hapus { background: #fce8e6; color: #c5221f; border-color: #f5c6c6; padding: 4px 10px; font-size: 11px; }
+.btn-csv { background: #e6f4ea; color: #137333; border-color: #c8e6c9; }
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; }
+th { background: #f8f9fa; text-align: left; padding: 10px 12px; font-size: 12px; border-bottom: 2px solid #e8eaed; color: #444; white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px; vertical-align: middle; }
+tr:hover td { background: #fafbfc; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; background: #e8f0fe; color: #1a73e8;
+}
+
+#loading { text-align: center; padding: 40px; color: #999; }
+
+/* MODAL HAPUS */
+#modal-hapus {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 999;
+  align-items: center; justify-content: center;
+}
+#modal-hapus.aktif { display: flex; }
+.modal-box {
+  background: white; border-radius: 12px; padding: 32px 28px 24px;
+  max-width: 380px; width: 90%; text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal-box .icon { font-size: 40px; margin-bottom: 12px; }
+.modal-box h3 { font-size: 15px; color: #c5221f; margin-bottom: 8px; }
+.modal-box p { font-size: 13px; color: #555; margin-bottom: 24px; line-height: 1.6; }
+.modal-btn-row { display: flex; gap: 10px; justify-content: center; }
+.modal-btn-row .btn { min-width: 110px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- LOGIN -->
+<div id="login-box">
+  <h2>🔐 Login Admin SMAP</h2>
+  <input type="password" id="pass" placeholder="Password admin" onkeydown="if(event.key==='Enter')login()">
+  <button class="btn btn-primary" id="btnLogin" onclick="login()" style="width:100%">Masuk</button>
+  <div id="err"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:18px;font-weight:bold;color:#1a237e">Dashboard Admin SMAP</div>
+      <div style="font-size:12px;color:#888;margin-top:2px">PT IDSurvey (Persero)</div>
+    </div>
+    <button class="btn btn-primary" onclick="muat()">🔄 Refresh Data</button>
+  </div>
+
+  <!-- STAT -->
+  <div class="stat-row">
+    <div class="stat"><div class="n" id="s-total">0</div><div class="l">Total Pengisian</div></div>
+    <div class="stat hijau"><div class="n" id="s-hari">0</div><div class="l">Hari Ini</div></div>
+    <div class="stat oren"><div class="n" id="s-unit">0</div><div class="l">Unit Kerja Aktif</div></div>
+    <div class="stat"><div class="n" id="s-minggu">0</div><div class="l">Minggu Ini</div></div>
+  </div>
+
+  <!-- GRAFIK -->
+  <div class="grafik-wrap">
+    <div class="grafik-card">
+      <h3>📊 Rekap per Unit Kerja</h3>
+      <div class="chart-container"><canvas id="chartUnit"></canvas></div>
+    </div>
+    <div class="grafik-card">
+      <h3>📅 Tren Pengisian (7 Hari Terakhir)</h3>
+      <div class="chart-container"><canvas id="chartTren"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABEL -->
+  <div class="card">
+    <div class="toolbar">
+      <input id="cari" placeholder="🔍 Cari nama..." oninput="renderTable()">
+      <select id="filter-unit" onchange="renderTable()">
+        <option value="">Semua Unit Kerja</option>
+        <option>Deputi Direktur Strategi dan Transformasi Korporat</option>
+        <option>Deputi Direktur Pemasaran dan Kelembagaan</option>
+        <option>Departemen Manajemen Portofolio</option>
+        <option>Divisi Pengembangan Korporat</option>
+        <option>Divisi Pengawasan Intern</option>
+        <option>Divisi Sekretaris Perusahaan</option>
+        <option>Divisi Integrasi Sistem Dan Proses Bisnis</option>
+        <option>Divisi Perencanaan dan Keuangan Korporat</option>
+        <option>Divisi Akuntansi Keuangan dan Pajak</option>
+        <option>Divisi Manajemen Risiko dan Keberlanjutan</option>
+        <option>Divisi Teknologi Informasi</option>
+        <option>Divisi Riset dan Pengembangan Produk</option>
+        <option>Divisi Pemasaran Korporat</option>
+        <option>Divisi Relasi Kelembagaan</option>
+        <option>Divisi Human Capital</option>
+        <option>Divisi Pengadaan, Umum dan Manajemen Aset</option>
+        <option>Unit TJSL</option>
+      </select>
+      <button class="btn btn-csv" onclick="downloadCSV()">⬇ CSV</button>
+    </div>
+
+    <div id="loading">⏳ Memuat data...</div>
+    <table id="tbl" style="display:none">
+      <thead><tr>
+        <th>No</th><th>Waktu Submit</th><th>Nama</th><th>Jabatan</th>
+        <th>Unit Kerja</th><th>Tempat</th><th>Tanggal TTD</th><th>PDF</th><th>Hapus</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL HAPUS -->
+<div id="modal-hapus">
+  <div class="modal-box">
+    <div class="icon">🗑️</div>
+    <h3>Hapus Data?</h3>
+    <p id="modal-pesan"></p>
+    <div class="modal-btn-row">
+      <button class="btn" onclick="tutupModal()">Batal</button>
+      <button class="btn btn-hapus" id="modal-ok-btn">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let allData = [];
+let chartUnit = null;
+let chartTren = null;
+
+// ─── LOGIN ───────────────────────────────────────
+function login() {
+  const p = document.getElementById('pass').value;
+  if (!p) { document.getElementById('err').innerText = 'Masukkan password.'; return; }
+  if (p !== ADMIN_PASSWORD) {
+    document.getElementById('err').innerText = 'Password salah.'; return;
+  }
+  document.getElementById('login-box').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  muat();
+}
+
+// ─── MUAT DATA ────────────────────────────────────
+async function muat() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('tbl').style.display = 'none';
+
+  const { data, error } = await sb
+    .from('smap_data')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('tbl').style.display = 'table';
+
+  if (error) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="9" style="color:red;text-align:center;padding:20px">Gagal memuat: ' + error.message + '</td></tr>';
+    return;
+  }
+
+  allData = data || [];
+  hitungStat();
+  renderGrafik();
+  renderTable();
+}
+
+// ─── STATISTIK ────────────────────────────────────
+function hitungStat() {
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('id-ID');
+
+  const startMinggu = new Date(now);
+  startMinggu.setDate(now.getDate() - 6);
+  startMinggu.setHours(0, 0, 0, 0);
+
+  const hariIni = allData.filter(d => {
+    return d.created_at && new Date(d.created_at).toLocaleDateString('id-ID') === todayStr;
+  }).length;
+
+  const mingguIni = allData.filter(d => {
+    return d.created_at && new Date(d.created_at) >= startMinggu;
+  }).length;
+
+  const units = new Set(allData.map(d => d.unit_kerja)).size;
+
+  document.getElementById('s-total').innerText = allData.length;
+  document.getElementById('s-hari').innerText = hariIni;
+  document.getElementById('s-unit').innerText = units;
+  document.getElementById('s-minggu').innerText = mingguIni;
+}
+
+// ─── GRAFIK ───────────────────────────────────────
+function renderGrafik() {
+  // Hitung per unit
+  const unitCount = {};
+  allData.forEach(d => {
+    const u = d.unit_kerja || 'Tidak diketahui';
+    unitCount[u] = (unitCount[u] || 0) + 1;
+  });
+  const sortedUnits = Object.entries(unitCount).sort((a, b) => b[1] - a[1]);
+  const labelUnit = sortedUnits.map(x => {
+    // Singkat label panjang
+    const l = x[0];
+    return l.length > 28 ? l.substring(0, 26) + '…' : l;
+  });
+  const dataUnit = sortedUnits.map(x => x[1]);
+
+  // Warna gradasi biru
+  const colors = dataUnit.map((_, i) => `hsla(${220 + i * 8}, 70%, ${55 - i * 2}%, 0.85)`);
+
+  if (chartUnit) chartUnit.destroy();
+  chartUnit = new Chart(document.getElementById('chartUnit'), {
+    type: 'bar',
+    data: {
+      labels: labelUnit,
+      datasets: [{ label: 'Jumlah', data: dataUnit, backgroundColor: colors, borderRadius: 5 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Tren 7 hari
+  const hari7 = [];
+  const count7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    const str = d.toLocaleDateString('id-ID');
+    hari7.push(label);
+    count7.push(allData.filter(x => x.created_at && new Date(x.created_at).toLocaleDateString('id-ID') === str).length);
+  }
+
+  if (chartTren) chartTren.destroy();
+  chartTren = new Chart(document.getElementById('chartTren'), {
+    type: 'line',
+    data: {
+      labels: hari7,
+      datasets: [{
+        label: 'Pengisian',
+        data: count7,
+        borderColor: '#1a73e8',
+        backgroundColor: 'rgba(26,115,232,0.1)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#1a73e8',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' }, min: 0 },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ─── TABEL ───────────────────────────────────────
+function renderTable() {
+  const q = document.getElementById('cari').value.toLowerCase();
+  const fu = document.getElementById('filter-unit').value;
+
+  const filtered = allData.filter(d =>
+    (!q || (d.nama && d.nama.toLowerCase().includes(q))) &&
+    (!fu || d.unit_kerja === fu)
+  );
+
+  if (filtered.length === 0) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;color:#999;padding:30px">Tidak ada data</td></tr>';
+    return;
+  }
+
+  let html = '';
+  filtered.forEach((d, i) => {
+    const ts = d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '-';
+    const tgl = d.tanggal || '-';
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td style="white-space:nowrap">${ts}</td>
+      <td><strong>${d.nama || '-'}</strong></td>
+      <td>${d.jabatan || '-'}</td>
+      <td><span class="badge">${d.unit_kerja || '-'}</span></td>
+      <td>${d.tempat || '-'}</td>
+      <td>${tgl}</td>
+      <td><button class="btn btn-pdf" onclick="cetakPDF('${d.id}')">🖨 PDF</button></td>
+      <td><button class="btn btn-hapus" onclick="konfirmasiHapus('${d.id}','${(d.nama||'').replace(/'/g,"\\'")}')">Hapus</button></td>
+    </tr>`;
+  });
+  document.getElementById('tbody').innerHTML = html;
+}
+
+// ─── PDF (1 HALAMAN) ─────────────────────────────
+async function cetakPDF(id) {
+  const d = allData.find(x => x.id == id);
+  if (!d) { alert('Data tidak ditemukan.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const W = 210; // lebar A4
+  const margin = 25;
+  const contentW = W - margin * 2;
+  let y = 20;
+
+  // ── Judul
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.text('SURAT PERNYATAAN', W / 2, y, { align: 'center' });
+  y += 6;
+  pdf.text('PEMAHAMAN DAN PENERAPAN KEBIJAKAN SMAP', W / 2, y, { align: 'center' });
+  y += 3;
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, y, W - margin, y);
+  y += 8;
+
+  // ── Pembuka
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text('Saya yang bertanda tangan di bawah ini:', margin, y);
+  y += 7;
+
+  // ── Identitas
+  const fields = [
+    ['Nama', d.nama],
+    ['Jabatan', d.jabatan],
+    ['Unit Kerja', d.unit_kerja],
+  ];
+  fields.forEach(([label, val]) => {
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(label, margin, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(': ' + (val || '-'), margin + 30, y);
+    y += 6;
+  });
+  y += 4;
+
+  // ── Pernyataan
+  pdf.text('Dengan ini menyatakan bahwa:', margin, y); y += 7;
+
+  const poin = [
+    'Saya telah menerima, membaca, dan memahami kebijakan Sistem Manajemen Anti Penyuapan (SMAP) yang ditandatangani oleh jajaran Komisaris dan Direksi PT IDSurvey (Persero).',
+    'Saya bersedia dan berkomitmen untuk menjalankan serta mematuhi kebijakan SMAP dalam setiap pelaksanaan tugas dan tanggung jawab pekerjaan.',
+    'Saya tidak akan melakukan tindakan yang mengarah pada penyuapan, gratifikasi, atau pelanggaran etika lainnya, serta akan menjaga integritas dalam bekerja.',
+    'Saya bersedia melaporkan setiap indikasi pelanggaran SMAP sesuai dengan mekanisme yang telah ditetapkan.',
+    'Saya memahami bahwa pelanggaran terhadap kebijakan SMAP akan dikenakan sanksi sesuai dengan ketentuan yang berlaku di perusahaan.',
+  ];
+
+  poin.forEach((p, idx) => {
+    const lines = pdf.splitTextToSize((idx + 1) + '. ' + p, contentW - 4);
+    pdf.text(lines, margin + 2, y);
+    y += lines.length * 5.5 + 1;
+  });
+  y += 3;
+
+  // ── Penutup
+  const penutup = pdf.splitTextToSize(
+    'Demikian surat pernyataan ini saya buat dengan sebenar-benarnya dan tanpa paksaan dari pihak manapun.', contentW
+  );
+  pdf.text(penutup, margin, y); y += penutup.length * 5.5 + 6;
+
+  // ── Tempat & Tanggal (pojok kanan)
+  const ttdX = W - margin - 55;
+  // Format tanggal
+  let tglFormatted = d.tanggal || '';
+  try {
+    if (d.tanggal) {
+      const tglObj = new Date(d.tanggal + 'T00:00:00');
+      tglFormatted = tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  } catch(e) {}
+
+  pdf.setFontSize(11);
+  pdf.text((d.tempat || 'Jakarta') + ', ' + tglFormatted, ttdX, y, { align: 'center' });
+  y += 5;
+  pdf.text('Yang menyatakan,', ttdX, y, { align: 'center' });
+  y += 5;
+
+  // ── Gambar TTD
+  if (d.ttd && d.ttd.startsWith('data:image')) {
+    try {
+      const imgW = 50;
+      const imgH = 20;
+      pdf.addImage(d.ttd, 'PNG', ttdX - imgW / 2, y, imgW, imgH);
+      y += imgH + 1;
+    } catch(e) { y += 22; }
+  } else {
+    y += 22;
+  }
+
+  // Garis tanda tangan
+  pdf.setLineWidth(0.3);
+  pdf.line(ttdX - 27, y, ttdX + 27, y);
+  y += 5;
+
+  // ── Nama
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(11);
+  pdf.text(d.nama || '', ttdX, y, { align: 'center' });
+
+  // ── Simpan
+  pdf.save('Surat_SMAP_' + (d.nama || 'unknown').replace(/\s+/g, '_') + '.pdf');
+}
+
+// ─── HAPUS ────────────────────────────────────────
+function konfirmasiHapus(id, nama) {
+  document.getElementById('modal-pesan').innerText =
+    'Data milik "' + nama + '" akan dihapus permanen.\nOrang tersebut dapat mengisi kembali setelah dihapus.';
+  document.getElementById('modal-ok-btn').onclick = () => eksekusiHapus(id);
+  document.getElementById('modal-hapus').classList.add('aktif');
+}
+
+function tutupModal() {
+  document.getElementById('modal-hapus').classList.remove('aktif');
+}
+
+document.getElementById('modal-hapus').addEventListener('click', function(e) {
+  if (e.target === this) tutupModal();
+});
+
+async function eksekusiHapus(id) {
+  tutupModal();
+  const { error } = await sb.from('smap_data').delete().eq('id', id);
+  if (error) { alert('Gagal hapus: ' + error.message); return; }
+  muat();
+}
+
+// ─── CSV ─────────────────────────────────────────
+function downloadCSV() {
+  if (allData.length === 0) { alert('Belum ada data.'); return; }
+  const baris = [['No', 'Waktu Submit', 'Nama', 'Jabatan', 'Unit Kerja', 'Tempat', 'Tanggal TTD']];
+  allData.forEach((d, i) => {
+    const ts = d.created_at ? new Date(d.created_at).toLocaleString('id-ID') : '';
+    baris.push([i + 1, ts, d.nama, d.jabatan, d.unit_kerja, d.tempat, d.tanggal]);
+  });
+  const csv = baris.map(r =>
+    r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Data_SMAP_' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-') + '.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

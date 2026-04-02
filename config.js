@@ -1,0 +1,4 @@
+const SUPABASE_URL = 'https://jmhkdroamivpdznftydj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptaGtkcm9hbWl2cGR6bmZ0eWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDc4ODMsImV4cCI6MjA5MDY4Mzg4M30.vOzMPX3pk0ZCi5QrZm5kryz8EczVAtB_pDpp-I4WkE8';
+const ADMIN_PASSWORD = 'hCIw3XxM6u5Wcl11';
+
